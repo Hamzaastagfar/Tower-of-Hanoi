@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, request, jsonify, session
 import uuid
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
@@ -83,7 +84,550 @@ def save_game(game):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Check if index.html exists, if not create it
+    if not os.path.exists('index.html'):
+        # Create the HTML file with the complete content
+        html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower of Hanoi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+            min-width: 150px;
+        }
+
+        .info-card h3 {
+            color: #2c3e50;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-card p {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .controls select {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-solve {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .btn-solve:hover {
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .game-area {
+            margin: 40px 0;
+            min-height: 400px;
+        }
+
+        .towers-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 350px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .tower {
+            width: 200px;
+            height: 300px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tower-disks {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            min-height: 250px;
+            z-index: 10;
+        }
+
+        .tower:hover {
+            transform: translateY(-5px);
+        }
+
+        .tower.selected {
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+            transform: translateY(-5px);
+        }
+
+        .tower-base {
+            width: 220px;
+            height: 25px;
+            background: linear-gradient(45deg, #8b4513, #a0522d);
+            border-radius: 12px;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 5;
+        }
+
+        .tower-pole {
+            width: 10px;
+            height: 250px;
+            background: linear-gradient(to bottom, #8b4513, #a0522d);
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+
+        .disk {
+            height: 30px;
+            border-radius: 15px;
+            margin-bottom: 1px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 3px solid rgba(255,255,255,0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .disk:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        .disk-1 { 
+            width: 80px; 
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        .disk-2 { 
+            width: 100px; 
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+        .disk-3 { 
+            width: 120px; 
+            background: linear-gradient(45deg, #f1c40f, #f39c12);
+        }
+        .disk-4 { 
+            width: 140px; 
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+        .disk-5 { 
+            width: 160px; 
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+        .disk-6 { 
+            width: 180px; 
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+        .disk-7 { 
+            width: 200px; 
+            background: linear-gradient(45deg, #1abc9c, #16a085);
+        }
+
+        .tower-label {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .win-message {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: celebration 1s ease-in-out;
+        }
+
+        @keyframes celebration {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+        }
+
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .instructions li {
+            padding: 8px 0;
+            color: #555;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .instructions li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .towers-container {
+                flex-direction: column;
+                height: auto;
+                gap: 30px;
+            }
+            
+            .tower {
+                width: 100%;
+                max-width: 300px;
+                height: 200px;
+            }
+            
+            .tower-pole {
+                height: 180px;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗼 Tower of Hanoi</h1>
+        
+        <div class="game-info">
+            <div class="info-card">
+                <h3>Moves Made</h3>
+                <p id="moves-count">0</p>
+            </div>
+            <div class="info-card">
+                <h3>Minimum Moves</h3>
+                <p id="min-moves">7</p>
+            </div>
+            <div class="info-card">
+                <h3>Efficiency</h3>
+                <p id="efficiency">100%</p>
+            </div>
+            
+            <div class="controls">
+                <label for="disk-count">Disks:</label>
+                <select id="disk-count">
+                    <option value="3" selected>3 Disks</option>
+                    <option value="4">4 Disks</option>
+                    <option value="5">5 Disks</option>
+                    <option value="6">6 Disks</option>
+                    <option value="7">7 Disks</option>
+                </select>
+                <button class="btn" onclick="resetGame()">New Game</button>
+                <button class="btn btn-solve" onclick="autoSolve()">Auto Solve</button>
+            </div>
+        </div>
+
+        <div id="win-message" class="win-message" style="display: none;">
+            🎉 Congratulations! You solved the Tower of Hanoi! 🎉
+        </div>
+
+        <div class="game-area">
+            <div class="towers-container">
+                <div class="tower" data-tower="0" onclick="selectTower(0)">
+                    <div class="tower-pole"></div>
+                    <div id="tower-0" class="tower-disks"></div>
+                    <div class="tower-base"></div>
+                    <div class="tower-label">Source</div>
+                </div>
+                <div class="tower" data-tower="1" onclick="selectTower(1)">
+                    <div class="tower-pole"></div>
+                    <div id="tower-1" class="tower-disks"></div>
+                    <div class="tower-base"></div>
+                    <div class="tower-label">Auxiliary</div>
+                </div>
+                <div class="tower" data-tower="2" onclick="selectTower(2)">
+                    <div class="tower-pole"></div>
+                    <div id="tower-2" class="tower-disks"></div>
+                    <div class="tower-base"></div>
+                    <div class="tower-label">Destination</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How to Play:</h3>
+            <ul>
+                <li>Move all disks from the Source tower to the Destination tower</li>
+                <li>You can only move one disk at a time</li>
+                <li>You can only move the top disk from a tower</li>
+                <li>You cannot place a larger disk on top of a smaller disk</li>
+                <li>Click on towers to select source and destination</li>
+                <li>Try to complete the puzzle in the minimum number of moves!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let selectedTower = null;
+        let gameState = null;
+        let autoSolving = false;
+
+        async function fetchGameState() {
+            const response = await fetch('/api/game_state');
+            gameState = await response.json();
+            updateDisplay();
+        }
+
+        async function makeMove(from, to) {
+            const response = await fetch('/api/move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ from, to })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                gameState = result.state;
+                updateDisplay();
+                
+                if (gameState.game_won) {
+                    document.getElementById('win-message').style.display = 'block';
+                }
+            } else {
+                // Visual feedback for invalid move
+                const tower = document.querySelector(`[data-tower="${to}"]`);
+                tower.style.background = 'rgba(231, 76, 60, 0.2)';
+                setTimeout(() => {
+                    tower.style.background = '';
+                }, 500);
+            }
+        }
+
+        async function resetGame() {
+            const diskCount = document.getElementById('disk-count').value;
+            const response = await fetch('/api/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ num_disks: parseInt(diskCount) })
+            });
+            
+            gameState = await response.json();
+            document.getElementById('win-message').style.display = 'none';
+            selectedTower = null;
+            updateDisplay();
+            clearSelection();
+        }
+
+        async function autoSolve() {
+            if (autoSolving) return;
+            
+            autoSolving = true;
+            const response = await fetch('/api/solve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const result = await response.json();
+            const moves = result.moves;
+            
+            for (let i = 0; i < moves.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 800));
+                await makeMove(moves[i].from, moves[i].to);
+            }
+            
+            autoSolving = false;
+        }
+
+        function selectTower(towerIndex) {
+            if (autoSolving) return;
+            
+            if (selectedTower === null) {
+                // Select source tower (must have disks)
+                if (gameState.towers[towerIndex].length > 0) {
+                    selectedTower = towerIndex;
+                    document.querySelector(`[data-tower="${towerIndex}"]`).classList.add('selected');
+                }
+            } else if (selectedTower === towerIndex) {
+                // Deselect
+                clearSelection();
+            } else {
+                // Make move
+                makeMove(selectedTower, towerIndex);
+                clearSelection();
+            }
+        }
+
+        function clearSelection() {
+            selectedTower = null;
+            document.querySelectorAll('.tower').forEach(tower => {
+                tower.classList.remove('selected');
+            });
+        }
+
+        function updateDisplay() {
+            // Update towers
+            for (let i = 0; i < 3; i++) {
+                const towerElement = document.getElementById(`tower-${i}`);
+                towerElement.innerHTML = '';
+                
+                // Create disks from bottom to top (largest first, smallest last)
+                // Reverse the array so largest disks are at bottom, smallest at top
+                const tower = [...gameState.towers[i]].reverse();
+                tower.forEach((diskSize, index) => {
+                    const disk = document.createElement('div');
+                    disk.className = `disk disk-${diskSize}`;
+                    disk.textContent = diskSize; // Show disk number
+                    towerElement.appendChild(disk);
+                });
+            }
+            
+            // Update stats
+            document.getElementById('moves-count').textContent = gameState.moves;
+            document.getElementById('min-moves').textContent = gameState.min_moves;
+            
+            const efficiency = gameState.moves === 0 ? 100 : 
+                             Math.round((gameState.min_moves / gameState.moves) * 100);
+            document.getElementById('efficiency').textContent = efficiency + '%';
+        }
+
+        // Initialize game
+        fetchGameState();
+    </script>
+</body>
+</html>'''
+        
+        # Write the HTML content to file
+        with open('index.html', 'w', encoding='utf-8') as f:
+            f.write(html_content)
+    
+    # Now serve the HTML file
+    with open('index.html', 'r', encoding='utf-8') as f:
+        return f.read()
 
 @app.route('/api/game_state')
 def game_state():
