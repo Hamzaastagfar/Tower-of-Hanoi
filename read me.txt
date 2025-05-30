@@ -1,0 +1,7 @@
+I used claude sonnet 4 for this project. i provided it with the description for tower of hanoi and asked it to make it using python. 
+I added that i have to upload this web application as well.
+After that it took on the role of making all the distinct files and how they would be calling each other when in use.
+I used firebase to make this usable online. this webb app saves your current progess on the device due to flask, so you even when you refresh it saves the current progress.
+It took me 30 mins for the while web app to make. but additional 3 hours to figure out how to make this available online.
+I used flask run the website available on port 5000. flask helped validate moves, track game state and detect wins.
+Flask handles multiple users playing simultaneously and make the project a real web app that can be uploaded online.
