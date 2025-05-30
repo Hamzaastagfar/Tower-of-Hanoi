@@ -5,3 +5,7 @@ I used firebase to make this usable online. this webb app saves your current pro
 It took me 30 mins for the while web app to make. but additional 3 hours to figure out how to make this available online.
 I used flask run the website available on port 5000. flask helped validate moves, track game state and detect wins.
 Flask handles multiple users playing simultaneously and make the project a real web app that can be uploaded online.
+ 
+                      DISCLAMER
+1) this web app "IS NOT" developed for mobile view, but if you do have to use it on mobile, use auto rotation to tilt your phone
+2) the auto solve bugs when you press it while allready doing it on your own, because it follows a specific pattern to solve the puzzle.
